@@ -79,7 +79,6 @@ class MigrationCommandController extends CommandController
         $this->flashMessage('Migration path: ' . $migrationFolderPath, 'Migration Command', FlashMessage::INFO);
 
         $iterator = new SortableDirectoryIterator($migrationFolderPath);
-//        $iterator = new \DirectoryIterator($migrationFolderPath);
 
         $highestExecutedVersion = 0;
         $errors = array();
