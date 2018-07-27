@@ -5,6 +5,7 @@ use AppZap\Migrator\DirectoryIterator\SortableDirectoryIterator;
 use SplFileInfo;
 use TYPO3\CMS\Core\Messaging\FlashMessage;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Core\Utility\VersionNumberUtility;
 use TYPO3\CMS\Extbase\Mvc\Controller\CommandController;
 
 class MigrationCommandController extends CommandController
@@ -161,7 +162,22 @@ class MigrationCommandController extends CommandController
     {
         $filePath = $fileinfo->getPathname();
 
-        $shellCommand = sprintf(
+        // check TYPO3 version
+        $currentVersion = VersionNumberUtility::convertVersionStringToArray(VersionNumberUtility::getCurrentTypo3Version());
+        if (isset($currentVersion['version_main']) && $currentVersion['version_main'] === 8) {
+            /* new 8.7 */
+            $shellCommand = sprintf(
+                $this->shellCommandTemplate,
+                $this->extensionConfiguration['mysqlBinaryPath'],
+                $GLOBALS['TYPO3_CONF_VARS']['DB']['Connections']['Default']['user'],
+                $GLOBALS['TYPO3_CONF_VARS']['DB']['Connections']['Default']['password'],
+                $GLOBALS['TYPO3_CONF_VARS']['DB']['Connections']['Default']['host'],
+                $GLOBALS['TYPO3_CONF_VARS']['DB']['Connections']['Default']['dbname'],
+                $filePath
+            );
+        } else {
+            /* old 7.6 */
+            $shellCommand = sprintf(
                 $this->shellCommandTemplate,
                 $this->extensionConfiguration['mysqlBinaryPath'],
                 $GLOBALS['TYPO3_CONF_VARS']['DB']['username'],
@@ -169,7 +185,8 @@ class MigrationCommandController extends CommandController
                 $GLOBALS['TYPO3_CONF_VARS']['DB']['host'],
                 $GLOBALS['TYPO3_CONF_VARS']['DB']['database'],
                 $filePath
-        );
+            );
+        }
 
         $output = shell_exec($shellCommand);
 
