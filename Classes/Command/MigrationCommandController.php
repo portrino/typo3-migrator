@@ -164,7 +164,7 @@ class MigrationCommandController extends CommandController
 
         // check TYPO3 version
         $currentVersion = VersionNumberUtility::convertVersionStringToArray(VersionNumberUtility::getCurrentTypo3Version());
-        if (isset($currentVersion['version_main']) && $currentVersion['version_main'] >= 9) {
+        if (isset($currentVersion['version_main']) && $currentVersion['version_main'] >= 8) {
             /* new 8.7 and higher */
             $shellCommand = sprintf(
                 $this->shellCommandTemplate,
