@@ -3,3 +3,6 @@ migrationFolderPath = _migrations
 
 # cat=basic/file/1; type=string; label=Path to the mysql binary
 mysqlBinaryPath = /usr/bin/mysql
+
+# cat=basic/file/1; type=string; label=Path to typo3cms
+typo3cmsBinaryPath = ./vendor/bin/typo3cms
