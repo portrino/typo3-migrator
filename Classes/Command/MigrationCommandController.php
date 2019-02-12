@@ -197,7 +197,9 @@ class MigrationCommandController extends CommandController
             if (!empty($line) && substr($line, 0, 1) != '#' && substr($line, 0, 2) != '//') {
                 $outputLines = array();
                 $status = null;
-                exec('./bin/typo3cms ' . $line, $outputLines, $status);
+                $shellCommand = ($this->extensionConfiguration['typo3cmsBinaryPath'] ?: './vendor/bin/typo3cms ')
+                    . $line;
+                exec($shellCommand, $outputLines, $status);
                 $output = implode(PHP_EOL, $outputLines);
                 if ($status != 0) {
                     $errors[] = $output;
