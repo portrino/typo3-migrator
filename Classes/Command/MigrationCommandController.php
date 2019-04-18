@@ -162,13 +162,13 @@ class MigrationCommandController extends CommandController
         $filePath = $fileinfo->getPathname();
 
         $shellCommand = sprintf(
-                $this->shellCommandTemplate,
-                $this->extensionConfiguration['mysqlBinaryPath'],
-                $GLOBALS['TYPO3_CONF_VARS']['DB']['username'] ?: $GLOBALS['TYPO3_CONF_VARS']['DB']['Connections']['default']['user'],
-                $GLOBALS['TYPO3_CONF_VARS']['DB']['password'] ?: $GLOBALS['TYPO3_CONF_VARS']['DB']['Connections']['default']['password'],
-                $GLOBALS['TYPO3_CONF_VARS']['DB']['host'] ?: $GLOBALS['TYPO3_CONF_VARS']['DB']['Connections']['default']['host'],
-                $GLOBALS['TYPO3_CONF_VARS']['DB']['database'] ?: $GLOBALS['TYPO3_CONF_VARS']['DB']['Connections']['default']['dbname'],
-                $filePath
+            $this->shellCommandTemplate,
+            $this->extensionConfiguration['mysqlBinaryPath'],
+            $GLOBALS['TYPO3_CONF_VARS']['DB']['username'] ?: $GLOBALS['TYPO3_CONF_VARS']['DB']['Connections']['Default']['user'],
+            $GLOBALS['TYPO3_CONF_VARS']['DB']['password'] ?: $GLOBALS['TYPO3_CONF_VARS']['DB']['Connections']['Default']['password'],
+            $GLOBALS['TYPO3_CONF_VARS']['DB']['host'] ?: $GLOBALS['TYPO3_CONF_VARS']['DB']['Connections']['Default']['host'],
+            $GLOBALS['TYPO3_CONF_VARS']['DB']['database'] ?: $GLOBALS['TYPO3_CONF_VARS']['DB']['Connections']['Default']['dbname'],
+            $filePath
         );
 
         $output = shell_exec($shellCommand);
