@@ -162,31 +162,15 @@ class MigrationCommandController extends CommandController
     {
         $filePath = $fileinfo->getPathname();
 
-        // check TYPO3 version
-        $currentVersion = VersionNumberUtility::convertVersionStringToArray(VersionNumberUtility::getCurrentTypo3Version());
-        if (isset($currentVersion['version_main']) && $currentVersion['version_main'] >= 8) {
-            /* new 8.7 and higher */
-            $shellCommand = sprintf(
-                $this->shellCommandTemplate,
-                $this->extensionConfiguration['mysqlBinaryPath'],
-                $GLOBALS['TYPO3_CONF_VARS']['DB']['Connections']['Default']['user'],
-                $GLOBALS['TYPO3_CONF_VARS']['DB']['Connections']['Default']['password'],
-                $GLOBALS['TYPO3_CONF_VARS']['DB']['Connections']['Default']['host'],
-                $GLOBALS['TYPO3_CONF_VARS']['DB']['Connections']['Default']['dbname'],
-                $filePath
-            );
-        } else {
-            /* old 7.6 */
-            $shellCommand = sprintf(
-                $this->shellCommandTemplate,
-                $this->extensionConfiguration['mysqlBinaryPath'],
-                $GLOBALS['TYPO3_CONF_VARS']['DB']['username'],
-                $GLOBALS['TYPO3_CONF_VARS']['DB']['password'],
-                $GLOBALS['TYPO3_CONF_VARS']['DB']['host'],
-                $GLOBALS['TYPO3_CONF_VARS']['DB']['database'],
-                $filePath
-            );
-        }
+        $shellCommand = sprintf(
+            $this->shellCommandTemplate,
+            $this->extensionConfiguration['mysqlBinaryPath'],
+            $GLOBALS['TYPO3_CONF_VARS']['DB']['username'] ?: $GLOBALS['TYPO3_CONF_VARS']['DB']['Connections']['Default']['user'],
+            $GLOBALS['TYPO3_CONF_VARS']['DB']['password'] ?: $GLOBALS['TYPO3_CONF_VARS']['DB']['Connections']['Default']['password'],
+            $GLOBALS['TYPO3_CONF_VARS']['DB']['host'] ?: $GLOBALS['TYPO3_CONF_VARS']['DB']['Connections']['Default']['host'],
+            $GLOBALS['TYPO3_CONF_VARS']['DB']['database'] ?: $GLOBALS['TYPO3_CONF_VARS']['DB']['Connections']['Default']['dbname'],
+            $filePath
+        );
 
         $output = shell_exec($shellCommand);
 
@@ -214,7 +198,9 @@ class MigrationCommandController extends CommandController
             if (!empty($line) && substr($line, 0, 1) != '#' && substr($line, 0, 2) != '//') {
                 $outputLines = array();
                 $status = null;
-                exec('./bin/typo3cms ' . $line, $outputLines, $status);
+                $shellCommand = ($this->extensionConfiguration['typo3cmsBinaryPath'] ?: './vendor/bin/typo3cms ')
+                    . $line;
+                exec($shellCommand, $outputLines, $status);
                 $output = implode(PHP_EOL, $outputLines);
                 if ($status != 0) {
                     $errors[] = $output;
