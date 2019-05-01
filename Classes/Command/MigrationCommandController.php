@@ -3,7 +3,9 @@ namespace AppZap\Migrator\Command;
 
 use AppZap\Migrator\DirectoryIterator\SortableDirectoryIterator;
 use SplFileInfo;
+use TYPO3\CMS\Core\Exception;
 use TYPO3\CMS\Core\Messaging\FlashMessage;
+use TYPO3\CMS\Core\Messaging\FlashMessageQueue;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Extbase\Mvc\Controller\CommandController;
 use TYPO3\CMS\Core\Messaging\FlashMessageService;
@@ -36,8 +38,8 @@ class MigrationCommandController extends CommandController
     }
 
     /**
+     * @throws Exception
      * @deprecated Use migrateCommand instead
-     * @throws \TYPO3\CMS\Core\Exception
      */
     public function migrateSqlFilesCommand()
     {
@@ -50,7 +52,7 @@ class MigrationCommandController extends CommandController
     }
 
     /**
-     * @throws \TYPO3\CMS\Core\Exception
+     * @throws Exception
      */
     public function migrateAllCommand()
     {
@@ -229,7 +231,7 @@ class MigrationCommandController extends CommandController
         chdir(PATH_site);
         exec($command, $outputLines, $status);
         $output = implode(PHP_EOL, $outputLines);
-        if ($status != 0) {
+        if ($status !== 0) {
             $errors[] = $output;
         }
         return count($errors) === 0;
@@ -239,11 +241,11 @@ class MigrationCommandController extends CommandController
      * @param string $message
      * @param string $title
      * @param int $severity
-     * @throws \TYPO3\CMS\Core\Exception
+     * @throws Exception
      */
     protected function flashMessage($message, $title = '', $severity = FlashMessage::OK)
     {
-        if (defined('TYPO3_cliMode')) {
+        if (defined('TYPO3_cliMode') || defined('TYPO3_REQUESTTYPE_CLI')) {
             $severityText = '';
             if ($severity === FlashMessage::ERROR) {
                 $severityText = 'ERROR: ';
@@ -258,7 +260,7 @@ class MigrationCommandController extends CommandController
             $this->flashMessageService = GeneralUtility::makeInstance(FlashMessageService::class);
         }
 
-        /** @var $defaultFlashMessageQueue \TYPO3\CMS\Core\Messaging\FlashMessageQueue */
+        /** @var $defaultFlashMessageQueue FlashMessageQueue */
         $defaultFlashMessageQueue = $this->flashMessageService->getMessageQueueByIdentifier();
         $defaultFlashMessageQueue->enqueue(
             GeneralUtility::makeInstance(FlashMessage::class, $message, $title, $severity)
@@ -268,7 +270,7 @@ class MigrationCommandController extends CommandController
     /**
      * @param $executedFiles
      * @param $errors
-     * @throws \TYPO3\CMS\Core\Exception
+     * @throws Exception
      */
     protected function enqueueFlashMessages($executedFiles, $errors)
     {
@@ -289,15 +291,17 @@ class MigrationCommandController extends CommandController
                 $this->flashMessage('Migration failed.', $flashMessageTitle, FlashMessage::ERROR);
             }
             if (count($errors)) {
+                $isCliMode = defined('TYPO3_cliMode') || defined('TYPO3_REQUESTTYPE_CLI');
+
                 $errorMessage = 'The following error' . (count($errors) > 1 ? 's' : '') . ' occured:';
-                $errorMessage .= defined('TYPO3_cliMode') ? '' : '<ul>';
+                $errorMessage .= $isCliMode ? '' : '<ul>';
                 foreach ($errors as $filename => $error) {
-                    $errorMessage .= defined('TYPO3_cliMode') ? '' : '<li>';
+                    $errorMessage .= $isCliMode ? '' : '<li>';
                     $errorMessage .= 'File ' . $filename . ': ';
-                    $errorMessage .= implode(defined('TYPO3_cliMode') ? PHP_EOL : '<br>', $error);
-                    $errorMessage .= defined('TYPO3_cliMode') ? PHP_EOL : '</li>';
+                    $errorMessage .= implode($isCliMode ? PHP_EOL : '<br>', $error);
+                    $errorMessage .= $isCliMode ? PHP_EOL : '</li>';
                 }
-                $errorMessage .= defined('TYPO3_cliMode') ? '' : '</ul>';
+                $errorMessage .= $isCliMode ? '' : '</ul>';
                 $this->flashMessage($errorMessage, $flashMessageTitle, FlashMessage::ERROR);
             }
         }
