@@ -5,16 +5,11 @@ use AppZap\Migrator\DirectoryIterator\SortableDirectoryIterator;
 use SplFileInfo;
 use TYPO3\CMS\Core\Messaging\FlashMessage;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
-use TYPO3\CMS\Core\Utility\VersionNumberUtility;
 use TYPO3\CMS\Extbase\Mvc\Controller\CommandController;
+use TYPO3\CMS\Core\Messaging\FlashMessageService;
 
 class MigrationCommandController extends CommandController
 {
-
-    /**
-     * @var \TYPO3\CMS\Core\Database\DatabaseConnection
-     */
-    protected $databaseConnection;
 
     /**
      * @var array
@@ -37,30 +32,36 @@ class MigrationCommandController extends CommandController
      */
     protected function initialize()
     {
-        $this->databaseConnection = $GLOBALS['TYPO3_DB'];
         $this->extensionConfiguration = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['migrator']);
     }
 
     /**
      * @deprecated Use migrateCommand instead
+     * @throws \TYPO3\CMS\Core\Exception
      */
     public function migrateSqlFilesCommand()
     {
-        $this->flashMessage('The "migration:migrateSqlFiles" command is deprecated. Please use "migration:migrateAll" command instead.', 'Migration Command',
-                FlashMessage::WARNING);
+        $this->flashMessage(
+            'The "migration:migrateSqlFiles" command is deprecated. Please use "migration:migrateAll" command instead.',
+            'Migration Command',
+            FlashMessage::WARNING
+        );
         $this->migrateAllCommand();
     }
 
     /**
-     *
+     * @throws \TYPO3\CMS\Core\Exception
      */
     public function migrateAllCommand()
     {
         $this->initialize();
         $pathFromConfig = null;
         if (empty($this->extensionConfiguration['migrationFolderPath'])) {
-            $this->flashMessage('The "sqlFolderPath" configuration is deprecated. Please use "migrationFolderPath" instead.',
-                    'Migration Command', FlashMessage::WARNING);
+            $this->flashMessage(
+                'The "sqlFolderPath" configuration is deprecated. Please use "migrationFolderPath" instead.',
+                'Migration Command',
+                FlashMessage::WARNING
+            );
             $pathFromConfig = PATH_site . $this->extensionConfiguration['sqlFolderPath'];
         } else {
             $pathFromConfig = PATH_site . $this->extensionConfiguration['migrationFolderPath'];
@@ -85,19 +86,17 @@ class MigrationCommandController extends CommandController
         $errors = array();
         $executedFiles = 0;
         foreach ($iterator as $fileinfo) {
-
             /** @var $fileinfo SplFileInfo */
-
             $fileVersion = (int)$fileinfo->getBasename('.' . $fileinfo->getExtension());
 
-            if ($fileinfo->getType() != 'file') {
+            if ($fileinfo->getType() !== 'file') {
                 continue;
             }
 
             $migrationStatus = $this->registry->get(
-                    'AppZap\\Migrator',
-                    'migrationStatus:' . $fileinfo->getBasename(),
-                    array('tstamp' => null, 'success' => false)
+                'AppZap\\Migrator',
+                'migrationStatus:' . $fileinfo->getBasename(),
+                array('tstamp' => null, 'success' => false)
             );
 
 
@@ -125,7 +124,11 @@ class MigrationCommandController extends CommandController
                     $success = true;
             }
 
-            $this->flashMessage('done ' . $fileinfo->getBasename() . ' ' . ($success ? 'OK' : 'ERROR'), 'Migration Command', FlashMessage::INFO);
+            $this->flashMessage(
+                'done ' . $fileinfo->getBasename() . ' ' . ($success ? 'OK' : 'ERROR'),
+                'Migration Command',
+                FlashMessage::INFO
+            );
 
             $this->outputLine(trim($migrationOutput) . PHP_EOL);
 
@@ -141,9 +144,9 @@ class MigrationCommandController extends CommandController
             }
 
             $this->registry->set(
-                    'AppZap\\Migrator',
-                    'migrationStatus:' . $fileinfo->getBasename(),
-                    array('tstamp' => time(), 'success' => $success)
+                'AppZap\\Migrator',
+                'migrationStatus:' . $fileinfo->getBasename(),
+                array('tstamp' => time(), 'success' => $success)
             );
         }
 
@@ -165,10 +168,10 @@ class MigrationCommandController extends CommandController
         $shellCommand = sprintf(
             $this->shellCommandTemplate,
             $this->extensionConfiguration['mysqlBinaryPath'],
-            $GLOBALS['TYPO3_CONF_VARS']['DB']['username'] ?: $GLOBALS['TYPO3_CONF_VARS']['DB']['Connections']['Default']['user'],
-            $GLOBALS['TYPO3_CONF_VARS']['DB']['password'] ?: $GLOBALS['TYPO3_CONF_VARS']['DB']['Connections']['Default']['password'],
-            $GLOBALS['TYPO3_CONF_VARS']['DB']['host'] ?: $GLOBALS['TYPO3_CONF_VARS']['DB']['Connections']['Default']['host'],
-            $GLOBALS['TYPO3_CONF_VARS']['DB']['database'] ?: $GLOBALS['TYPO3_CONF_VARS']['DB']['Connections']['Default']['dbname'],
+            $GLOBALS['TYPO3_CONF_VARS']['DB']['username'] ? : $GLOBALS['TYPO3_CONF_VARS']['DB']['Connections']['Default']['user'],
+            $GLOBALS['TYPO3_CONF_VARS']['DB']['password'] ? : $GLOBALS['TYPO3_CONF_VARS']['DB']['Connections']['Default']['password'],
+            $GLOBALS['TYPO3_CONF_VARS']['DB']['host'] ? : $GLOBALS['TYPO3_CONF_VARS']['DB']['Connections']['Default']['host'],
+            $GLOBALS['TYPO3_CONF_VARS']['DB']['database'] ? : $GLOBALS['TYPO3_CONF_VARS']['DB']['Connections']['Default']['dbname'],
             $filePath
         );
 
@@ -195,14 +198,15 @@ class MigrationCommandController extends CommandController
         $migrationContent = file_get_contents($fileinfo->getPathname());
         foreach (explode(PHP_EOL, $migrationContent) as $line) {
             $line = trim($line);
-            if (!empty($line) && substr($line, 0, 1) != '#' && substr($line, 0, 2) != '//') {
+            if (!empty($line) && strpos($line, '#') !== 0 && strpos($line, '//') !== 0) {
                 $outputLines = array();
                 $status = null;
-                $shellCommand = ($this->extensionConfiguration['typo3cmsBinaryPath'] ?: './vendor/bin/typo3cms ')
+                $shellCommand =
+                    ($this->extensionConfiguration['typo3cmsBinaryPath'] ? : './vendor/bin/typo3cms ')
                     . $line;
                 exec($shellCommand, $outputLines, $status);
                 $output = implode(PHP_EOL, $outputLines);
-                if ($status != 0) {
+                if ($status !== 0) {
                     $errors[] = $output;
                     break;
                 }
@@ -232,17 +236,18 @@ class MigrationCommandController extends CommandController
     }
 
     /**
-     * @param $message
-     * @param $title
+     * @param string $message
+     * @param string $title
      * @param int $severity
+     * @throws \TYPO3\CMS\Core\Exception
      */
     protected function flashMessage($message, $title = '', $severity = FlashMessage::OK)
     {
         if (defined('TYPO3_cliMode')) {
             $severityText = '';
-            if ($severity == FlashMessage::ERROR) {
+            if ($severity === FlashMessage::ERROR) {
                 $severityText = 'ERROR: ';
-            } elseif ($severity == FlashMessage::WARNING) {
+            } elseif ($severity === FlashMessage::WARNING) {
                 $severityText = 'WARNING: ';
             }
             $this->outputLine($title . ': ' . $severityText . strip_tags($message));
@@ -250,30 +255,36 @@ class MigrationCommandController extends CommandController
         }
 
         if (!isset($this->flashMessageService)) {
-            $this->flashMessageService = GeneralUtility::makeInstance('TYPO3\\CMS\\Core\\Messaging\\FlashMessageService');
+            $this->flashMessageService = GeneralUtility::makeInstance(FlashMessageService::class);
         }
 
         /** @var $defaultFlashMessageQueue \TYPO3\CMS\Core\Messaging\FlashMessageQueue */
         $defaultFlashMessageQueue = $this->flashMessageService->getMessageQueueByIdentifier();
         $defaultFlashMessageQueue->enqueue(
-                GeneralUtility::makeInstance('TYPO3\\CMS\\Core\\Messaging\\FlashMessage', $message, $title, $severity)
+            GeneralUtility::makeInstance(FlashMessage::class, $message, $title, $severity)
         );
     }
 
     /**
      * @param $executedFiles
      * @param $errors
+     * @throws \TYPO3\CMS\Core\Exception
      */
     protected function enqueueFlashMessages($executedFiles, $errors)
     {
         $flashMessageTitle = 'Migration Command';
         if ($executedFiles === 0 && count($errors) === 0) {
-            $this->flashMessage('Everything up to date. No migrations needed.', $flashMessageTitle,
-                    FlashMessage::NOTICE);
+            $this->flashMessage(
+                'Everything up to date. No migrations needed.',
+                $flashMessageTitle,
+                FlashMessage::NOTICE
+            );
         } else {
             if ($executedFiles) {
-                $this->flashMessage('Migration of ' . $executedFiles . ' file' . ($executedFiles > 1 ? 's' : '') . ' completed.',
-                        $flashMessageTitle, FlashMessage::OK);
+                $this->flashMessage(
+                    'Migration of ' . $executedFiles . ' file' . ($executedFiles > 1 ? 's' : '') . ' completed.',
+                    $flashMessageTitle
+                );
             } else {
                 $this->flashMessage('Migration failed.', $flashMessageTitle, FlashMessage::ERROR);
             }
