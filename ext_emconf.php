@@ -13,7 +13,7 @@ $EM_CONF['migrator'] = array(
 	'version' => '1.2.0',
 	'constraints' => array(
 		'depends' => array(
-			'typo3' => '6.1.0-7.99.99',
+			'typo3' => '8.7.0-9.5.99',
 		),
 	),
 );
