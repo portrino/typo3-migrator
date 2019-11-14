@@ -1,4 +1,5 @@
 <?php
+
 namespace AppZap\Migrator\Command;
 
 use AppZap\Migrator\DirectoryIterator\SortableDirectoryIterator;
@@ -6,9 +7,9 @@ use SplFileInfo;
 use TYPO3\CMS\Core\Exception;
 use TYPO3\CMS\Core\Messaging\FlashMessage;
 use TYPO3\CMS\Core\Messaging\FlashMessageQueue;
+use TYPO3\CMS\Core\Messaging\FlashMessageService;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Extbase\Mvc\Controller\CommandController;
-use TYPO3\CMS\Core\Messaging\FlashMessageService;
 
 class MigrationCommandController extends CommandController
 {
@@ -28,14 +29,6 @@ class MigrationCommandController extends CommandController
      * @inject
      */
     protected $registry;
-
-    /**
-     *
-     */
-    protected function initialize()
-    {
-        $this->extensionConfiguration = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['migrator']);
-    }
 
     /**
      * @throws Exception
@@ -101,7 +94,6 @@ class MigrationCommandController extends CommandController
                 array('tstamp' => null, 'success' => false)
             );
 
-
             if ($migrationStatus['success']) {
                 // already successfully executed
                 continue;
@@ -158,6 +150,14 @@ class MigrationCommandController extends CommandController
     }
 
     /**
+     *
+     */
+    protected function initialize()
+    {
+        $this->extensionConfiguration = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['migrator']);
+    }
+
+    /**
      * @param SplFileInfo $fileinfo
      * @param array $errors
      * @param string $output
@@ -170,10 +170,10 @@ class MigrationCommandController extends CommandController
         $shellCommand = sprintf(
             $this->shellCommandTemplate,
             $this->extensionConfiguration['mysqlBinaryPath'],
-            $GLOBALS['TYPO3_CONF_VARS']['DB']['username'] ? : $GLOBALS['TYPO3_CONF_VARS']['DB']['Connections']['Default']['user'],
-            $GLOBALS['TYPO3_CONF_VARS']['DB']['password'] ? : $GLOBALS['TYPO3_CONF_VARS']['DB']['Connections']['Default']['password'],
-            $GLOBALS['TYPO3_CONF_VARS']['DB']['host'] ? : $GLOBALS['TYPO3_CONF_VARS']['DB']['Connections']['Default']['host'],
-            $GLOBALS['TYPO3_CONF_VARS']['DB']['database'] ? : $GLOBALS['TYPO3_CONF_VARS']['DB']['Connections']['Default']['dbname'],
+            $GLOBALS['TYPO3_CONF_VARS']['DB']['username'] ?: $GLOBALS['TYPO3_CONF_VARS']['DB']['Connections']['Default']['user'],
+            $GLOBALS['TYPO3_CONF_VARS']['DB']['password'] ?: $GLOBALS['TYPO3_CONF_VARS']['DB']['Connections']['Default']['password'],
+            $GLOBALS['TYPO3_CONF_VARS']['DB']['host'] ?: $GLOBALS['TYPO3_CONF_VARS']['DB']['Connections']['Default']['host'],
+            $GLOBALS['TYPO3_CONF_VARS']['DB']['database'] ?: $GLOBALS['TYPO3_CONF_VARS']['DB']['Connections']['Default']['dbname'],
             $filePath
         );
 
@@ -204,7 +204,7 @@ class MigrationCommandController extends CommandController
                 $outputLines = array();
                 $status = null;
                 $shellCommand =
-                    ($this->extensionConfiguration['typo3cmsBinaryPath'] ? : './vendor/bin/typo3cms ')
+                    ($this->extensionConfiguration['typo3cmsBinaryPath'] ?: './vendor/bin/typo3cms ')
                     . $line;
                 exec($shellCommand, $outputLines, $status);
                 $output = implode(PHP_EOL, $outputLines);
