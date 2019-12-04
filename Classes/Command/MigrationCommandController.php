@@ -204,7 +204,8 @@ class MigrationCommandController extends CommandController
                 $outputLines = array();
                 $status = null;
                 $shellCommand =
-                    ($this->extensionConfiguration['typo3cmsBinaryPath'] ?: './vendor/bin/typo3cms ')
+                    ($this->extensionConfiguration['typo3cmsBinaryPath'] ?: './vendor/bin/typo3cms')
+                    . ' '
                     . $line;
                 exec($shellCommand, $outputLines, $status);
                 $output = implode(PHP_EOL, $outputLines);
