@@ -42,7 +42,7 @@ class MigrateAllCommand extends Command
      */
     protected function configure()
     {
-        $this->extensionConfiguration = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['migrator']);
+        $this->extensionConfiguration = $GLOBALS['TYPO3_CONF_VARS']['EXTENSIONS']['migrator'];
         $this->registry = GeneralUtility::makeInstance(Registry::class);
 
             $this->setDescription(
