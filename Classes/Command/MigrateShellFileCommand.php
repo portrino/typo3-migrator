@@ -6,13 +6,15 @@ use SplFileInfo;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
+use TYPO3\CMS\Core\Core\Environment;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 /**
- * Class MigrateAllCommand
+ * Class MigrateShellFileCommand
  *
  * @package AppZap\Migrator\Command
  */
-class MigrateAllCommand extends AbstractMigrateCommand
+class MigrateShellFileCommand extends AbstractMigrateCommand
 {
 
     /**
@@ -23,7 +25,7 @@ class MigrateAllCommand extends AbstractMigrateCommand
         parent::configure();
 
         $this->setDescription(
-            'Migrates *.sh, *.sql and *.typo3cms files from the configured migrations directory.'
+            'Migrates *.sh files from the configured migrations directory.'
         );
     }
 
@@ -68,12 +70,6 @@ class MigrateAllCommand extends AbstractMigrateCommand
                 $migrationErrors = array();
                 $migrationOutput = '';
                 switch ($fileInfo->getExtension()) {
-                    case 'sql':
-                        $success = $this->migrateSqlFile($fileInfo, $migrationErrors, $migrationOutput);
-                        break;
-                    case 'typo3cms':
-                        $success = $this->migrateTypo3CmsFile($fileInfo, $migrationErrors, $migrationOutput);
-                        break;
                     case 'sh':
                         $success = $this->migrateShellFile($fileInfo, $migrationErrors, $migrationOutput);
                         break;
@@ -98,11 +94,13 @@ class MigrateAllCommand extends AbstractMigrateCommand
                     $highestExecutedVersion = max($highestExecutedVersion, $fileVersion);
                 }
 
-                $this->registry->set(
-                    'AppZap\\Migrator',
-                    'migrationStatus:' . $fileInfo->getBasename(),
-                    ['tstamp' => time(), 'success' => $success]
-                );
+                if ((bool)$input->getOption('dry-run') === false) {
+                    $this->registry->set(
+                        'AppZap\\Migrator',
+                        'migrationStatus:' . $fileInfo->getBasename(),
+                        ['tstamp' => time(), 'success' => $success]
+                    );
+                }
             }
 
             $this->outputMessages($executedFiles, $errors, $io);
