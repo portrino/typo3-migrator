@@ -7,13 +7,13 @@ $EM_CONF['migrator'] = array(
 	'description' => 'TYPO3 DB Migrator',
 	'category' => 'be',
 	'state' => 'beta',
-	'author' => 'Sebastian Michaelsen',
-	'author_email' => 'sebastian@app-zap.de',
+	'author' => 'Sebastian Michaelsen, portrino GmbH',
+	'author_email' => 'sebastian@app-zap.de, info@portrino.de',
 	'author_company' => 'app zap',
-	'version' => '1.2.0',
+	'version' => '2.0.0',
 	'constraints' => array(
 		'depends' => array(
-			'typo3' => '8.7.0-9.5.99',
+			'typo3' => '10.4.0-10.4.99',
 		),
 	),
 );

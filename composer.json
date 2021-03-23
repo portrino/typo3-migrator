@@ -1,20 +1,29 @@
 {
-	"name": "appzap/migrator",
-	"authors": [
-		{
-			"name": "Sebastian Michaelsen",
-			"email": "sebastian@app-zap.de",
-			"role": "developer"
-		}
-	],
-	"description": "A TYPO3 Extension for SQL Migrations",
-	"license": "GPL-2.0",
-	"type": "typo3-cms-extension",
-	"autoload": {
-		"psr-4": {
-			"AppZap\\Migrator\\": "Classes/"
-		}
-	},
+    "name": "appzap/migrator",
+    "authors": [
+        {
+            "name": "Sebastian Michaelsen",
+            "email": "sebastian@app-zap.de",
+            "role": "developer"
+        },
+        {
+            "name": "portrino GmbH",
+            "email": "dev@portrino.de",
+            "homepage": "https://www.portrino.de",
+            "role": "Developer"
+        }
+    ],
+    "description": "A TYPO3 Extension for SQL Migrations",
+    "license": "GPL-2.0",
+    "type": "typo3-cms-extension",
+    "autoload": {
+        "psr-4": {
+            "AppZap\\Migrator\\": "Classes/"
+        }
+    },
+    "suggest": {
+        "portrino/px_dbsequencer": ""
+    },
     "extra": {
         "typo3/cms": {
             "extension-key": "migrator"
