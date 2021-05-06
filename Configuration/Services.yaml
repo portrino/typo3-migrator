@@ -1,0 +1,11 @@
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+        public: false
+
+    AppZap\Migrator\Command\MigrateAllCommand:
+        tags:
+            - name: 'console.command'
+              command: 'migration:migrateall'
+              schedulable: false
